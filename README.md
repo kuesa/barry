@@ -1,3 +1,7 @@
+Fork of char-rnn-tensorflow, with discord implementation for text generation bot.
+
+ORIGINAL README:
+===
 char-rnn-tensorflow
 ===
 
