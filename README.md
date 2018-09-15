@@ -3,7 +3,7 @@
 Fork of char-rnn-tensorflow, with discord implementation for text generation bot, Barry.
 You will need to install the discord python wrapper for this. I think it's on pip
 
-# ORIGINAL README:
+## ORIGINAL README:
 
 # char-rnn-tensorflow
 
