@@ -6,8 +6,8 @@ import argparse
 from six import text_type
 import json
 import os
-import train
-import sample
+import train as tr
+import sample as sp
 
 # load SECRET DATA from JSON file
 with open('client_info.json') as f:
@@ -95,13 +95,13 @@ async def on_message(message):
     if client.user.mentioned_in(message):
         sampleParser.add_argument('--prime', type=text_type, default=message.content,
                                   help='prime text')
-        sample(sampleArgs)
-        with open('output\output.txt', 'r') as the_file:
+        sp.sample(sampleArgs)
+        with open('output/output.txt', 'r') as the_file:
             lines = the_file.readlines()
             await client.send_message(discord.Object(id=client_channel), lines[1].encode('utf-8').decode('unicode-escape'), tts=bool(random.getrandbits(1)))
     elif message.content.startswith('!record'):
         print('Recording...')
-        with open('data\input.txt', 'w') as the_file:
+        with open('data/input.txt', 'w') as the_file:
             async for log in client.logs_from(message.channel, limit=1000000000000000):
                 try:
                     author = log.author
@@ -120,7 +120,7 @@ async def on_message(message):
         if training != True:
             await client.change_presence(game=None, status='with his brain', afk=False)
             training = True
-            train(trainArgs)
+            tr.train(trainArgs)
         elif training == True:
             await client.change_presence(game=None, status=None, afk=False)
             training = False

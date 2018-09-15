@@ -28,7 +28,7 @@ def sample(args):
         ckpt = tf.train.get_checkpoint_state(args.save_dir)
         if ckpt and ckpt.model_checkpoint_path:
             saver.restore(sess, ckpt.model_checkpoint_path)
-            with open('output\output.txt', 'w') as f:
+            with open('output/output.txt', 'w') as f:
                 f.write(model.sample(sess, chars, vocab, args.n, args.prime,
                                      args.sample).encode('utf-8'))
 
