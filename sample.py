@@ -13,14 +13,14 @@ import tensorflow as tf
 from model import Model
 
 
-def sample(args):
+def sample(args, prime):
     with open(os.path.join(args.save_dir, 'config.pkl'), 'rb') as f:
         saved_args = cPickle.load(f)
     with open(os.path.join(args.save_dir, 'chars_vocab.pkl'), 'rb') as f:
         chars, vocab = cPickle.load(f)
     # Use most frequent char if no prime is given
-    if args.prime == '':
-        args.prime = chars[0]
+    if prime == '':
+        prime = chars[0]
     model = Model(saved_args, training=False)
     with tf.Session() as sess:
         tf.global_variables_initializer().run()
@@ -29,8 +29,8 @@ def sample(args):
         if ckpt and ckpt.model_checkpoint_path:
             saver.restore(sess, ckpt.model_checkpoint_path)
             with open('output/output.txt', 'w') as f:
-                f.write(model.sample(sess, chars, vocab, args.n, args.prime,
-                                     args.sample).encode('utf-8'))
+                f.write(str(model.sample(sess, chars, vocab, args.n, prime,
+                                         args.sample).encode('utf-8')))
 
 # must be called from python file
 

@@ -8,15 +8,15 @@ import json
 import os
 import train as tr
 import sample as sp
+import importlib
+import sys
+import tensorflow as tf
 
 # load SECRET DATA from JSON file
 with open('client_info.json') as f:
     client_info = json.load(f)
 client_secret = client_info['secret']
 client_channel = client_info['channel']
-
-client = discord.Client()
-training = False
 
 # taken from sample.py and train.py to pass arguments to train files
 sampleParser = argparse.ArgumentParser(
@@ -28,7 +28,8 @@ sampleParser.add_argument('-n', type=int, default=500,
 sampleParser.add_argument('--sample', type=int, default=1,
                           help='0 to use max at each timestep, 1 to sample at '
                           'each timestep, 2 to sample on spaces')
-
+sampleParser.add_argument('--prime', type=text_type, default='',
+                          help='prime text')
 sampleArgs = sampleParser.parse_args()
 
 trainParser = argparse.ArgumentParser(
@@ -42,16 +43,6 @@ trainParser.add_argument('--log_dir', type=str, default='logs',
                          help='directory to store tensorboard logs')
 trainParser.add_argument('--save_every', type=int, default=1000,
                          help='Save frequency. Number of passes between checkpoints of the model.')
-trainParser.add_argument('--init_from', type=str, default='save',
-                         help="""continue training from saved model at this path (usually "save").
-                        Path must contain files saved by previous training process:
-                        'config.pkl'        : configuration;
-                        'chars_vocab.pkl'   : vocabulary definitions;
-                        'checkpoint'        : paths to model file(s) (created by tf).
-                                              Note: this file contains absolute paths, be careful when moving files around;
-                        'model.ckpt-*'      : file(s) with model definition (created by tf)
-                         Model params must be the same between multiple runs (model, rnn_size, num_layers and seq_length).
-                    """)
 # Model params
 trainParser.add_argument('--model', type=str, default='lstm',
                          help='lstm, rnn, gru, or nas')
@@ -78,7 +69,16 @@ trainParser.add_argument('--output_keep_prob', type=float, default=1.0,
                          help='probability of keeping weights in the hidden layer')
 trainParser.add_argument('--input_keep_prob', type=float, default=1.0,
                          help='probability of keeping weights in the input layer')
+
+if os.path.isfile('save/config.pk1'):
+    trainParser.add_argument('--init_from', type=str, default='save', help="")
+else:
+    trainParser.add_argument('--init_from', type=str, default=None, help="")
+
 trainArgs = trainParser.parse_args()
+
+client = discord.Client()
+training = False
 
 
 @client.event
@@ -93,11 +93,10 @@ async def on_ready():
 async def on_message(message):
     global training
     if client.user.mentioned_in(message):
-        sampleParser.add_argument('--prime', type=text_type, default=message.content,
-                                  help='prime text')
-        sp.sample(sampleArgs)
+        sp.sample(sampleArgs, message.content)
+        tf.reset_default_graph()
         with open('output/output.txt', 'r') as the_file:
-            lines = the_file.readlines()
+            lines = the_file.read().split('\\r\\n')
             await client.send_message(discord.Object(id=client_channel), lines[1].encode('utf-8').decode('unicode-escape'), tts=bool(random.getrandbits(1)))
     elif message.content.startswith('!record'):
         print('Recording...')
