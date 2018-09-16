@@ -17,6 +17,7 @@ with open('client_info.json') as f:
     client_info = json.load(f)
 client_secret = client_info['secret']
 client_channel = client_info['channel']
+admin_id = client_info['admin']
 
 # taken from sample.py and train.py to pass arguments to train files
 sampleParser = argparse.ArgumentParser(
@@ -98,7 +99,7 @@ async def on_message(message):
         with open('output/output.txt', 'r') as the_file:
             lines = the_file.read().split('\\r\\n')
             await client.send_message(discord.Object(id=client_channel), lines[1].encode('utf-8').decode('unicode-escape'), tts=bool(random.getrandbits(1)))
-    elif message.content.startswith('!record'):
+    elif message.content.startswith('!record') and message.author.id = discord.Object(id=admin_id):
         print('Recording...')
         with open('data/input.txt', 'w') as the_file:
             async for log in client.logs_from(message.channel, limit=1000000000000000):
@@ -115,7 +116,7 @@ async def on_message(message):
                     author = log.author.discriminator
                     the_file.write(template.format(message=messageEncode))
         print('Data Collected from ' + message.channel.name)
-    elif message.content.startswith('!train'):
+    elif message.content.startswith('!train') and message.author.id = discord.Object(id=admin_id):
         if training != True:
             await client.change_presence(game=None, status='with his brain', afk=False)
             training = True
