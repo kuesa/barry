@@ -11,6 +11,7 @@ import sample as sp
 import importlib
 import sys
 import tensorflow as tf
+import re
 
 # load SECRET DATA from JSON file
 with open('client_info.json') as f:
@@ -94,12 +95,13 @@ async def on_ready():
 async def on_message(message):
     global training
     if client.user.mentioned_in(message):
-        sp.sample(sampleArgs, message.content)
+        sp.sample(sampleArgs, re.sub('(<@|<@!)([0-9])+>', '', message.content))
         tf.reset_default_graph()
         with open('output/output.txt', 'r') as the_file:
             lines = the_file.read().split('\\r\\n')
             # the training data im using produced a lot of double-escaped unicode, e.g. \\xf012 or something like that, so it has to decode twice, but python is funky so this is the ugly, horrible fix
-            await client.send_message(discord.Object(id=client_channel), lines[1].encode('ascii').decode('unicode_escape').encode('ascii').decode('unicode_escape'), tts=bool(random.getrandbits(1)))
+            # remove the re.sub() to allow barry to tag people
+            await client.send_message(discord.Object(id=client_channel), re.sub('(<@|<@!)([0-9])+>', '', lines[1].encode('ascii').decode('unicode_escape').encode('ascii').decode('unicode_escape')), tts=bool(random.getrandbits(1)))
     elif message.content.startswith('!record') and message.author.id == admin_id:
         print('Recording...')
         with open('data/input.txt', 'w') as the_file:
