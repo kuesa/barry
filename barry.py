@@ -98,32 +98,31 @@ async def on_message(message):
         tf.reset_default_graph()
         with open('output/output.txt', 'r') as the_file:
             lines = the_file.read().split('\\r\\n')
-            await client.send_message(discord.Object(id=client_channel), lines[1].encode('utf-8').decode('unicode-escape'), tts=bool(random.getrandbits(1)))
+            # the training data im using produced a lot of double-escaped unicode, e.g. \\xf012 or something like that, so it has to decode twice, but python is funky so this is the ugly, horrible fix
+            await client.send_message(discord.Object(id=client_channel), lines[1].encode('ascii').decode('unicode_escape').encode('ascii').decode('unicode_escape'), tts=bool(random.getrandbits(1)))
     elif message.content.startswith('!record') and message.author.id == admin_id:
         print('Recording...')
         with open('data/input.txt', 'w') as the_file:
             async for log in client.logs_from(message.channel, limit=1000000000000000):
-                try:
-                    author = log.author
-                except:
-                    author = 'invalid'
                 messageEncode = str(log.content.encode("utf-8"))[2:-1]
 
                 template = '{message}\n'
                 try:
                     the_file.write(template.format(message=messageEncode))
                 except:
-                    author = log.author.discriminator
                     the_file.write(template.format(message=messageEncode))
         print('Data Collected from ' + message.channel.name)
     elif message.content.startswith('!train') and message.author.id == admin_id:
         if training != True:
+            # status change doesnt work right now. starting the training turns off the discord bot, probably just due to how the training function works
             await client.change_presence(game=None, status='with his brain', afk=False)
             training = True
             tr.train(trainArgs)
         elif training == True:
             await client.change_presence(game=None, status=None, afk=False)
             training = False
+    elif message.content.startswith('!leave') and message.author.id == admin_id:
+        await client.disconnect()
 
 
 client.run(client_secret, bot=True)
